@@ -77,7 +77,23 @@ class SocialGraph:
         The key is the friend's ID and the value is the path.
         """
         visited = {}  # Note that this is a dictionary, not a set
-        # !!!! IMPLEMENT ME
+        
+        # BFS
+        # queue
+        # current path starting with user_id
+
+        # node check
+            # return if user_id match
+
+        # visited check
+            ## while queue has users
+                ### dequeue and capture start user
+                
+                ### for each friendship
+                    #### create path copy
+                    #### queue path copy with user of friendship
+
+
         return visited
 
 
