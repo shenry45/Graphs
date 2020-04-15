@@ -1,5 +1,21 @@
 import random
 
+class Queue:
+    def __init__(self):
+        self.queue = []
+
+    def enqueue(self, user):
+        self.queue.append(user)
+
+    def dequeue(self):
+        if self.size() > 0:
+            return self.queue.pop(0)
+        else:
+            return None
+
+    def size(self):
+        return len(self.queue)
+
 class User:
     def __init__(self, name):
         self.name = name
@@ -52,7 +68,7 @@ class SocialGraph:
         # create a list with all possible friend connections
         friendships = []
         for user in range(1, self.last_id + 1):
-            for friend in range(user + 1, num_users):
+            for friend in range(user + 1, num_users + 1):
                 friendships.append((user, friend))
 
         # shuffle the list
@@ -60,11 +76,12 @@ class SocialGraph:
 
         # grab first N elements of list
         total_friendships = num_users * avg_friendships
-        pairs_needed = friendships // 2
-        random_friendships = total_friendships[:pairs_needed]
+        pairs_needed = total_friendships // 2
+        random_friendships = friendships[:pairs_needed]
 
         # Create friendships
         for friendship in random_friendships:
+            print(friendship)
             self.add_friendship(friendship[0], friendship[1])
 
     def get_all_social_paths(self, user_id):
@@ -77,22 +94,42 @@ class SocialGraph:
         The key is the friend's ID and the value is the path.
         """
         visited = {}  # Note that this is a dictionary, not a set
-        
+
         # BFS
         # queue
+        q = Queue()
+        path = [user_id]
+
         # current path starting with user_id
+        q.enqueue(path)
 
-        # node check
-            # return if user_id match
+        # iter through friendships
 
-        # visited check
-            ## while queue has users
-                ### dequeue and capture start user
-                
-                ### for each friendship
-                    #### create path copy
-                    #### queue path copy with user of friendship
 
+
+        # while q.size() > 0:
+        #     ## dequeue and capture start user
+        #     cur_path = q.dequeue()
+        #     cur_user = cur_path[-1]
+
+        #     ## node check
+        #     if cur_user == user_id:
+        #         ### return if user_id match
+        #         return cur_path
+
+        #     ### for each friendship
+        #     for friendship in self.friendships:
+        #         print(friendship)
+        #         ## visited check
+        #         if cur_user not in visited or visited[cur_user][friendship]:
+        #             ### add user is visited
+        #             visited[cur_user].append[friendship]
+
+        #         #### create path copy
+        #         path_copy = cur_path[:]
+        #         #### queue path copy with user of friendship
+        #         path_copy.append(friendship)
+        #         q.enqueue(path_copy)
 
         return visited
 
@@ -100,6 +137,6 @@ class SocialGraph:
 if __name__ == '__main__':
     sg = SocialGraph()
     sg.populate_graph(10, 2)
-    print(sg.friendships)
+    print(sg.friendships, '\n\n')
     connections = sg.get_all_social_paths(1)
-    print(connections)
+    print('connex', connections)
