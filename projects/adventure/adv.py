@@ -1,6 +1,7 @@
 from room import Room
 from player import Player
 from world import World
+from pathlib import Path
 
 import random
 from ast import literal_eval
@@ -10,14 +11,17 @@ world = World()
 
 
 # You may uncomment the smaller graphs for development and testing purposes.
-# map_file = "maps/test_line.txt"
-# map_file = "maps/test_cross.txt"
-# map_file = "maps/test_loop.txt"
-# map_file = "maps/test_loop_fork.txt"
-map_file = "maps/main_maze.txt"
+map_folder = Path(f"{Path.cwd()}/projects/adventure/maps/")
+map_file = [
+    map_folder / "main_maze.txt",
+    map_folder / "test_cross.txt",
+    map_folder / "test_line.txt",
+    map_folder / "test_loop_fork.txt",
+    map_folder / "test_loop.txt"
+]
 
 # Loads the map into a dictionary
-room_graph=literal_eval(open(map_file, "r").read())
+room_graph=literal_eval(open(map_file[0], "r").read())
 world.load_graph(room_graph)
 
 # Print an ASCII map
