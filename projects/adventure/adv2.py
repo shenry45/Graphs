@@ -33,9 +33,6 @@ player = Player(world.starting_room)
 traversal_path = []
 
 traversal_graph = {}
-# fill traversal graph to match room count
-for numb in range(len(room_graph)):
-    traversal_graph[numb] = {'n': '?', 'e': '?', 's': '?', 'w': '?'}
 
 class Stack:
     def __init__(self):
@@ -65,39 +62,28 @@ class Queue:
     def size(self):
         return len(self.queue)
 
-#DFT
-visited = []
-s = Stack()
-path = [[None, player.current_room.id]]
-s.push(path)
+path = [player.current_room]
 
-while s.size() > 0:
-    ## pop off top of stack, the current_room
-    current_path = s.pop()
-    print('init cur path', current_path)
-    current_room = current_path[-1]
-    player.travel(current_room[0])
+# while len(traversal_graph) < 500:
+# if player's room not searched
+if player.current_room.id not in traversal_graph:
+    # add room to graph
+    traversal_graph[player.current_room.id] = {'n': '?', 'e': '?', 's': '?', 'w': '?'}
 
-    ## not visited? 
-    if player.current_room not in visited:
-        ### mark visited
-        visited.append(player.current_room.id)
-        ### get possible directions
-        dirs = player.current_room.get_exits()
-        print('\n directions', dirs)
+# get all possible directions
+for direction in traversal_graph[player.current_room.id].keys():
+    print(direction)
+    possible = player.current_room.get_room_in_direction(direction)
+    print(possible)
 
-        for direction in dirs:
-            possible = player.current_room.get_room_in_direction(direction)
-            if possible is not None and possible not in visited:
-                print(current_path)
-                path_copy = current_path[-1]
-                print(path_copy)
-                path_copy.append([direction, player.current_room])
-                s.push(direction)
-
-print(traversal_path)
+    if possible is None:
+        traversal_graph[player.current_room.id][direction] = None
+    else:
+        traversal_path.append(direction)
+        traversal_graph[player.current_room.id][direction] = player.travel(direction)
 
 
+print(traversal_graph)
 
 # TRAVERSAL TEST
 visited_rooms = set()
