@@ -21,7 +21,7 @@ map_file = [
 ]
 
 # Loads the map into a dictionary
-room_graph=literal_eval(open(map_file[2], "r").read())
+room_graph=literal_eval(open(map_file[1], "r").read())
 world.load_graph(room_graph)
 
 # Print an ASCII map
@@ -33,9 +33,9 @@ player = Player(world.starting_room)
 traversal_path = []
 
 traversal_graph = {}
-# fill traversal graph to match room count
-for numb in range(len(room_graph)):
-    traversal_graph[numb] = {'n': '?', 'e': '?', 's': '?', 'w': '?'}
+# # fill traversal graph to match room count
+# for numb in range(len(room_graph)):
+#     traversal_graph[numb] = {'n': '?', 'e': '?', 's': '?', 'w': '?'}
 
 class Stack:
     def __init__(self):
@@ -68,34 +68,53 @@ class Queue:
 #DFT
 visited = []
 s = Stack()
-path = [[None, player.current_room.id]]
-s.push(path)
+room = player.current_room.id
+s.push(room)
 
 while s.size() > 0:
     ## pop off top of stack, the current_room
-    current_path = s.pop()
-    print('init cur path', current_path)
-    current_room = current_path[-1]
-    player.travel(current_room[0])
+    current_room = s.pop()
+    print('**cur room', current_room)
 
     ## not visited? 
-    if player.current_room not in visited:
+    if current_room not in traversal_graph:
         ### mark visited
-        visited.append(player.current_room.id)
-        ### get possible directions
-        dirs = player.current_room.get_exits()
-        print('\n directions', dirs)
+        traversal_graph[current_room] = {'n': '?', 'e': '?', 's': '?', 'w': '?'}
+    else:
+        player.travel(traversal_path[-1])
 
-        for direction in dirs:
-            possible = player.current_room.get_room_in_direction(direction)
-            if possible is not None and possible not in visited:
-                print(current_path)
-                path_copy = current_path[-1]
-                print(path_copy)
-                path_copy.append([direction, player.current_room])
-                s.push(direction)
+    ### get possible directions
+    dirs = world.rooms[current_room].get_exits()
+    print(current_room, dirs)
+
+    # Mark invalid directions as None
+    compass = ['n', 'e', 's', 'w']
+    for direction in compass:
+        if direction not in dirs:
+            traversal_graph[player.current_room.id][direction] = 'None'
+            print('line 95', direction)
+            dirs.remove(direction)
+
+    # iter through moveable directions
+    for direction in dirs:
+        possible = player.current_room.get_room_in_direction(direction)
+        print('POS ROOM', possible.id)
+        if possible.id not in traversal_graph.keys():
+            # add to graph
+            traversal_graph[current_room][direction] = possible.id
+            # move player
+            # player.travel(direction)
+            # add direction to players traveled path
+            traversal_path.append(direction)
+            # push onto DFT stack
+            s.push(possible.id)
+        else:
+            # already a visited node
+            # add to graph
+            traversal_graph[current_room][direction] = possible.id
 
 print(traversal_path)
+print(traversal_graph)
 
 
 
@@ -119,12 +138,12 @@ else:
 #######
 # UNCOMMENT TO WALK AROUND
 #######
-player.current_room.print_room_description(player)
-while True:
-    cmds = input("-> ").lower().split(" ")
-    if cmds[0] in ["n", "s", "e", "w"]:
-        player.travel(cmds[0], True)
-    elif cmds[0] == "q":
-        break
-    else:
-        print("I did not understand that command.")
+# player.current_room.print_room_description(player)
+# while True:
+#     cmds = input("-> ").lower().split(" ")
+#     if cmds[0] in ["n", "s", "e", "w"]:
+#         player.travel(cmds[0], True)
+#     elif cmds[0] == "q":
+#         break
+#     else:
+#         print("I did not understand that command.")
