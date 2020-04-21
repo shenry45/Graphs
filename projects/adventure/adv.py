@@ -89,13 +89,16 @@ while s.size() > 0:
         # iter through moveable directions
         for direction in dirs:
             possible = world.rooms[current_room].get_room_in_direction(direction)
-            print(possible.id)
 
-            if possible is None or possible.id in traversal_graph:
+            if possible is None:
+                continue
+
+            if possible.id in traversal_graph:
+                # add reverse direction to graph
+                traversal_graph[current_room][direction] = possible.id
                 continue
 
             path_copy = current_path[:]
-            print(current_path, type(current_path))
             path_copy.append(possible.id)
             # add to graph
             traversal_graph[current_room][direction] = possible.id
