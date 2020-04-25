@@ -21,7 +21,7 @@ map_file = [
 ]
 
 # Loads the map into a dictionary
-room_graph=literal_eval(open(map_file[1], "r").read())
+room_graph=literal_eval(open(map_file[0], "r").read())
 world.load_graph(room_graph)
 
 # Print an ASCII map
@@ -34,26 +34,13 @@ traversal_path = []
 
 traversal_graph = {}
 
-class Stack:
-    def __init__(self):
-        self.stack = []
-    def push(self, value):
-        self.stack.append(value)
-    def pop(self):
-        if self.size() > 0:
-            return self.stack.pop()
-        else:
-            return None
-    def size(self):
-        return len(self.stack)
-
 class Queue:
     def __init__(self):
         self.queue = []
     def enqueue(self, value):
         self.queue.append(value)
     def dequeue(self):
-        if self.size > 0:
+        if self.size() > 0:
             last = self.queue[0]
             self.queue.pop(0)
             return last
@@ -62,55 +49,78 @@ class Queue:
     def size(self):
         return len(self.queue)
 
-#DFT
-visited = []
-s = Stack()
-path = [player.current_room.id]
-s.push(path)
+possible_dirs = {}
+current_dirs = player.current_room.get_exits()
+reverse_dir = {'n': 's', 'e': 'w', 's': 'n', 'w': 'e'}
 
-while s.size() > 0:
-    ## pop off top of stack, the current_room
-    current_path = s.pop()
-    current_room = current_path[-1]
-    print('**cur room', current_room)
+for exit in current_dirs:
+    possible_dirs[exit] = '?'
+    traversal_graph[player.current_room.id] = possible_dirs 
 
-    if current_room not in traversal_graph:
-        traversal_graph[current_room] = {'n': '?', 'e': '?', 's': '?', 'w': '?'}
+def find_next_route(node):
+    visited = []
+    q = Queue()
+    q.enqueue([node])
 
-        ### get possible directions
-        dirs = world.rooms[current_room].get_exits()
+    while q.size() > 0:
+        path = q.dequeue()
+        cur_room = path[-1]
 
-        # Mark invalid directions as None
-        compass = ['n', 'e', 's', 'w']
-        for direction in compass:
-            if direction not in dirs:
-                traversal_graph[current_room][direction] = 'None'
+        if cur_room not in visited:
+            for dir in traversal_graph[cur_room]:
+                if traversal_graph[cur_room][dir] == '?':
+                    return path
+            visited.append(cur_room)
+            for und_dir in traversal_graph[cur_room]:
+                path_copy = path[:]
+                path_copy.append(traversal_graph[cur_room][und_dir])
+                q.enqueue(path_copy)
+        
+    return []
 
-        # iter through moveable directions
-        for direction in dirs:
-            possible = world.rooms[current_room].get_room_in_direction(direction)
+def pathDirections(path):
+    directions = []
+    cur_room = path[0]
+    path = path[1:]
+    for room in path:
+        for exit in traversal_graph[cur_room]:
+            if room == traversal_graph[cur_room][exit]:
+                directions.append(exit)
+    return directions
 
-            if possible is None:
-                continue
+while True:
+    cur_room_exits = traversal_graph[player.current_room.id]
+    move_dirs = []
 
-            if possible.id in traversal_graph:
-                # add reverse direction to graph
-                traversal_graph[current_room][direction] = possible.id
-                continue
+    # if exit not discovered, add to directions to move
+    for dir in cur_room_exits:
+        if cur_room_exits[dir] == '?':
+            move_dirs.append(dir)
 
-            path_copy = current_path[:]
-            path_copy.append(possible.id)
-            # add to graph
-            traversal_graph[current_room][direction] = possible.id
-            # add direction to players traveled path
-            # traversal_path.append(direction)
-            # push onto DFT stack
-            s.push(path_copy)
+    if len(move_dirs) > 0:
+        direction = move_dirs[0]
+        # move player
+        traversal_path.append(direction)
+        last_room = player.current_room.id
+        player.travel(direction)
+        possible_dirs = {}
+
+        # now if new room not in graph
+        if player.current_room.id not in traversal_graph:
+            for exit in player.current_room.get_exits():
+                possible_dirs[exit] = '?'
+            traversal_graph[player.current_room.id] = possible_dirs
+        # set to and from path for recent rooms
+        traversal_graph[last_room][direction] = player.current_room.id
+        traversal_graph[player.current_room.id][reverse_dir[direction]] = last_room
     else:
-        break
-
-print(traversal_path)
-print(traversal_graph)
+        # find closest not discovered room
+        walkDirections = find_next_route(player.current_room.id)
+        if len(walkDirections) == 0:
+            break
+        for direction in pathDirections(walkDirections):
+            player.travel(direction)
+            traversal_path.append(direction)
 
 
 
